@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Scam Message Checker</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; color: #222; }
+  h1 { margin-bottom: 4px; }
+  p.subtitle { color: #555; margin-top: 0; }
+  textarea { width: 100%; height: 120px; padding: 10px; font-size: 15px; box-sizing: border-box; margin-top: 10px; }
+  button { margin-top: 12px; padding: 10px 20px; font-size: 15px; background: #1a7f37; color: white; border: none; border-radius: 6px; cursor: pointer; }
+  button:hover { background: #166e2e; }
+  #result { margin-top: 20px; padding: 16px; border-radius: 8px; display: none; }
+  .high { background: #fde8e8; border: 1px solid #c0392b; }
+  .medium { background: #fff6e5; border: 1px solid #d68a00; }
+  .low { background: #e8f7ec; border: 1px solid #1a7f37; }
+  ul { margin: 8px 0 0 0; padding-left: 20px; }
+  .score { font-weight: bold; font-size: 18px; }
+</style>
+</head>
+<body>
+  <h1>Scam Message Checker</h1>
+  <p class="subtitle">Paste a suspicious SMS, WhatsApp, or email message below to check it for common scam warning signs. Nothing you type is sent anywhere, this all runs in your browser.</p>
+
+  <textarea id="msgInput" placeholder="Paste the message here..."></textarea>
+  <br>
+  <button onclick="checkMessage()">Check Message</button>
+
+  <div id="result"></div>
+
+<script>
+const scamPatterns = [
+  { pattern: /urgent(ly)?/i, reason: "Uses urgency to rush you into acting without thinking." },
+  { pattern: /verify your (account|bvn|pin|otp)/i, reason: "Asks you to verify sensitive account details, banks don't ask this way." },
+  { pattern: /click (here|this link)/i, reason: "Pushes you to click a link quickly." },
+  { pattern: /you (have )?(won|win)/i, reason: "Claims you've won something you didn't enter for." },
+  { pattern: /send.*(otp|pin|password)/i, reason: "Asks you to send your OTP, PIN, or password. No real bank or service ever asks for this." },
+  { pattern: /account.*(suspend|block|freez)/i, reason: "Threatens that your account will be blocked or suspended." },
+  { pattern: /(dear customer|dear valued)/i, reason: "Uses a generic greeting instead of your real name, common in mass scam messages." },
+  { pattern: /\b\d{4,6}\b.*(code|pin)/i, reason: "Mentions a numeric code, a common OTP-theft pattern." },
+  { pattern: /bit\.ly|tinyurl|shorturl/i, reason: "Uses a shortened link that hides the real destination." },
+  { pattern: /pay.*(fee|charge).*(release|claim|process)/i, reason: "Asks for a fee before releasing money or a prize, a classic advance-fee scam sign." }
+];
+
+function checkMessage() {
+  const msg = document.getElementById('msgInput').value;
+  const result = document.getElementById('result');
+
+  if (msg.trim() === '') {
+    result.style.display = 'block';
+    result.className = '';
+    result.innerHTML = '<p>Please paste a message first.</p>';
+    return;
+  }
+
+  const matched = scamPatterns.filter(p => p.pattern.test(msg));
+  const score = matched.length;
+
+  let level, label;
+  if (score >= 3) { level = 'high'; label = 'High risk'; }
+  else if (score >= 1) { level = 'medium'; label = 'Some warning signs'; }
+  else { level = 'low'; label = 'No obvious warning signs found'; }
+
+  result.style.display = 'block';
+  result.className = level;
+
+  let html = '<div class="score">' + label + ' (' + score + ' warning sign' + (score === 1 ? '' : 's') + ' found)</div>';
+  if (matched.length > 0) {
+    html += '<ul>' + matched.map(m => '<li>' + m.reason + '</li>').join('') + '</ul>';
+  } else {
+    html += '<p>This tool only checks for common patterns. Still be careful, and never share your PIN, OTP, or password with anyone.</p>';
+  }
+  result.innerHTML = html;
+}
+</script>
+</body>
+</html>
